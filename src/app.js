@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validators = require("validator")
 
 mongoose.connect("mongodb://localhost:27017/satyamDb", { useNewUrlParser : true , useUnifiedTopology : true})
 .then( () => console.log(" connected Successfully"))
@@ -12,11 +13,45 @@ mongoose.connect("mongodb://localhost:27017/satyamDb", { useNewUrlParser : true 
 const playlistSchema = new mongoose.Schema({
     name : {
         type : String,
-        require : true
+        require : true,
+        unique:true,                                    // unique is not a validator
+        lowercase:true,                                 // mongoose validations
+        trim:true,
+        minlength:[2," minimum 2 latters needed"],
+        maxlength:[30," maximum 30 latters needed"],
     },
-    ctype : String,
-    videos : Number,
-    author : String,
+    ctype : {
+        type : String,
+        require:true,
+        lowercase:true,
+        enum:['database','frontend','backend']
+    },
+    videos : {
+        type:Number,
+        validate(value){                                // mongoose custom validations
+            if(value<0){
+                throw new Error ("videos must be +ve")
+            }
+        }
+
+        // validate:{
+        //     validator:function(v){
+        //         return v.length < 0
+        //     },
+        //     message : "video count shouldnot be -ve"
+        // }
+    },
+    author: String,
+    email : {
+        type:String,
+        require : true,
+        unique: true,
+        validate(value){
+            if(!validators.isEmail(value)){                     // npm validator
+                throw new Error("Invalid Email");
+            }
+        }
+    },
     active : Boolean,
     date : {
         type : Date,
@@ -39,8 +74,8 @@ const Playlist = new mongoose.model("Playlist",playlistSchema)
 // ------ simple method start -----------
 
 // const reactPlaylist = new Playlist({
-//     name : "React JS",
-//     ctype : "Front End",
+//     name : "monggose js",
+//     ctype : "FrontEnd",
 //     videos : 80,
 //     author : "Thapa Technical",
 //     active : true
@@ -52,26 +87,27 @@ const Playlist = new mongoose.model("Playlist",playlistSchema)
 
 // ----------- proper data storing start-------------
 
-// const createDocument = async () => {
-//     try {
+const createDocument = async () => {
+    try {
 
-//         const reactPlaylist = new Playlist({
-//             name : "Node JS",
-//             ctype : "Back End",
-//             videos : 50,
-//             author : "Thapa Technical",
-//             active : true
-//         })
+        const reactPlaylist = new Playlist({
+            name : "Node-JS",
+            ctype : "BackEnd",
+            videos : 50,
+            author : "Thapa Technical",
+            email : "satyam@yahoo.com",
+            active : true
+        })
 
-//         const result = await reactPlaylist.save();
-//         console.log(result);
+        const result = await reactPlaylist.save();
+        console.log(result);
 
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
+    } catch (error) {
+        console.log(error);
+    }
+}
 
-// createDocument();
+createDocument();
 
 // ----------- proper data storing end -------------
 
@@ -226,19 +262,19 @@ const Playlist = new mongoose.model("Playlist",playlistSchema)
 
 // ----------- Delete start -------------------------------
 
-const getDocument = async (_id) =>{
-    try {
+// const getDocument = async (_id) =>{
+//     try {
 
-        // const result = await Playlist.deleteOne({_id})
-        // const result = await Playlist.deleteMany({_id})
-        const result = await Playlist.findByIdAndDelete({_id})
-        console.log(result);
+//         // const result = await Playlist.deleteOne({_id})
+//         // const result = await Playlist.deleteMany({_id})
+//         const result = await Playlist.findByIdAndDelete({_id})
+//         console.log(result);
         
-    } catch (error) {
-        console.log(error)
-    }
-} 
-getDocument('64c63259043859d7b38c67f4');
+//     } catch (error) {
+//         console.log(error)
+//     }
+// } 
+// getDocument('64c63259043859d7b38c67f4');
 
-// ----------- Dpdate end ---------------------------------
+// ----------- Delete end ---------------------------------
 
